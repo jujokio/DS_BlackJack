@@ -8,7 +8,7 @@ def server():
 	UDP_PORT = 5006
 	global sock
 	global response
-	sock.settimeout(10)
+	sock.settimeout(30)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 		print("jou")
@@ -21,9 +21,15 @@ def server():
 			else:
 				print ("Full game or no work")
 				joinGame()
-		if (response.get("id")==1):
+		elif (response.get("id")==1):
 			#
-			print("toinen request")
+			print("hitted")
+		elif (response.get("id")==2):
+			#
+			print(response.get("message"))
+		elif (response.get("id")==3):
+			#
+			print("quit")
 		print ("received message:", response)
 
 		
@@ -40,9 +46,8 @@ print ("UDP target IP:", UDP_IP)
 print ("UDP target port:", UDP_PORT_SERVER)
 print ("message:", MESSAGE)
 
-def joinGame():
-	server_ip=input("Anna palvelimen IP osoite: ")
-	server_ip='127.0.0.1'
+def joinGame(server_ip):
+	#server_ip=input("Anna palvelimen IP osoite: ")
 	print ("Joining game")
 	print ("--------------------------")
 	try:
@@ -53,8 +58,40 @@ def joinGame():
 	except:
 		joinGame()
 		
+def sendHitRequest(server_ip):
+	try:
+		request={"id" : 1}
+		data=json.dumps(request)
+		sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+	except:
+		sendHitRequest(server_ip)
+		
+def sendStandRequest(server_ip):
+	try:
+		request={"id" : 2}
+		data=json.dumps(request)
+		sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+	except:
+		sendHitRequest(server_ip)
+		
+def sendExitMessage(server_ip):
+	try:
+		request={"id" : 3}
+		data=json.dumps(request)
+		sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+	except:
+		sendHitRequest(server_ip)
+
+server_ip='127.0.0.1'
 response=""
-joinGame()
+commands = {0 : joinGame,
+           1 : sendHitRequest,
+           2 : sendStandRequest,
+           3 : sendExitMessage,
+}
+while True:
+	command=int(input("give command: "))
+	commands[command](server_ip)
 #message = ""
 #message += struct.pack("i",4)
 #message += struct.pack("i",3)

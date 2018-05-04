@@ -12,20 +12,24 @@ def server():
 	sock.bind((UDP_IP, UDP_PORT))
 	print(sock)
 	players=0
-	sock.settimeout(10)
+	sock.settimeout(30)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 		request = json.loads(data.decode())
-		#Join game
 		print (addr)
-		if (request.get("id")==0):
+		if (request.get("id")==0):#Join game
 			if (players<=2):
 				response={"id" : 0, "message" : "success"}
 				sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 		elif (request.get("id")==1):
-			sock.sendto("you hitted", (addr[0], addr[1]))
+			response={"id" : 1, "message" : "you hitted"}
+			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 		elif (request.get("id")==2):
-			sock.sendto("you stand", (addr[0], addr[1]))
+			response={"id" : 2, "message" : "you stand"}
+			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
+		elif (request.get("id")==3):
+			response={"id" : 3, "message" : "you quit"}
+			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 		print ("received message:", request)
 		
 		
