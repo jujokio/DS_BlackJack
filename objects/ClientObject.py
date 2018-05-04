@@ -7,6 +7,7 @@ class ClientObject:
 		print("client init")
 		
 		
+		
 	def SendJoinRequest(self):
 		print("Client Joining...")
 		requestCode = 0

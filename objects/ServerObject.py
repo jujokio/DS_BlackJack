@@ -1,13 +1,14 @@
 import socket
 from . import BlackJackObject
-
-
-
-		
+	
 		
 class ServerObject():
+	game = None
+
+	
 	def __init__(self):
 		print("server init")
+		servu = self.start()
 
 	def ReceiveJoinRequest(self):
 		print("server Joining...")
@@ -38,6 +39,15 @@ class ServerObject():
 		return None
 		
 	def startGame(self):
-		game = BlackJackObject.BlackJackGameObject()
-		game.start()
+		self.game = BlackJackObject.BlackJackGameObject()
+		self.game.game()
+		print("serverObject uusipeli")
+		
+		
+		
+	def start(self):
+		print("server start")
+		return self.game
+	
+	
 		

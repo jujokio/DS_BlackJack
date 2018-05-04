@@ -3,13 +3,22 @@ Edited from https://gist.github.com/mjhea0/5680216
 """
 import os
 import random
-
+from server import server
+import socket
+import struct
+import sys
+import threading
+import json
 deck = []
 class Player():
 	hand=[]
 	name = None
-	def __init__(self, name=None):
+	port = ""
+	ip = ""
+	def __init__(self, port, ip, name=None):
 		self.name = name
+		self.port = port
+		self.ip = ip
 		
 	def setHand(self, hand):
 		self.hand = hand
@@ -23,16 +32,35 @@ class Player():
 		
 		
 class BlackJackGameObject():
-	player1 = Player()
-	player2 = Player()
-	dealer = Player()
+	player1 = None
+	player2 = None
+	dealer = Player(0,0)
 	deck = []
-
+	game = None
+	sock = None
+	
 
 	def __init__(self):
-		deck = self.createDeck()
-		game = self.game()
+		self.deck = self.createDeck()
+		#game = self.game()
 		
+		
+	def bindSocket(self):
+		UDP_IP = "127.0.0.1"
+		UDP_PORT = 5005
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+		self.sock.bind((UDP_IP, UDP_PORT))
+	
+	
+	def waitForPlayers(self):
+		print("Waiting for players:")
+		client_ip, client_port = server(self.sock)
+		self.player1 = Player(client_ip, client_port)
+		print(client_ip, client_port)
+		
+		#client_ip, client_port = server()
+		#player2 = Player(client_ip, client_port)
+			
 		
 	def running(self):
 		return True if game is not None else None
@@ -47,10 +75,10 @@ class BlackJackGameObject():
 		}
 		return hands
 	def createDeck(self):
+		deck = []
 		for j in range(4):
-			for i in range(1,15):
+			for i in range(2,15):
 				deck.append(i)
-		print(deck)
 		return deck
 
 
@@ -68,7 +96,9 @@ class BlackJackGameObject():
 
 	def play_again(self):
 		print("end here")
-		exit()
+		self.game=None
+		self.__init__()
+		#exit()
 
 	def total(self, hand):
 		total = 0
@@ -85,7 +115,7 @@ class BlackJackGameObject():
 		return total
 
 	def hit(self, hand):
-		card = deck.pop()
+		card = self.deck.pop()
 		if card == 11:card = "J"
 		if card == 12:card = "Q"
 		if card == 13:card = "K"
@@ -94,6 +124,7 @@ class BlackJackGameObject():
 		return hand
 
 	def clear(self):
+		return
 		if os.name == 'nt':
 			os.system('CLS')
 		if os.name == 'posix':
@@ -103,7 +134,7 @@ class BlackJackGameObject():
 		self.clear()
 		print ("The dealer has a " + str(dealer_hand) + " for a total of " + str(self.total(dealer_hand)))
 		print ("You have a " + str(player_hand) + " for a total of " + str(self.total(player_hand)))
-
+		
 	def blackjack(self, dealer_hand, player_hand):
 		if self.total(player_hand) == 21:
 			self.print_results(dealer_hand, player_hand)
@@ -147,27 +178,32 @@ class BlackJackGameObject():
 		choice = 0
 		self.clear()
 		print ("WELCOME TO DISTRIBUTED BLACKJACK!\n")
+		self.player1.setHand(self.deal(self.deck))
+		#self.player2.setHand(self.deal(self.deck))
+		self.dealer.setHand(self.deal(self.deck))
 		
-		self.player1.setHand(self.deal(deck))
-		self.player2.setHand(self.deal(deck))
-		self.dealer.setHand(self.deal(deck))
-		
-		while choice != "q":
+		while choice != "q" and self.game is not None:
 			print ("The dealer is showing a " + str(self.dealer.getHand()[0]))
+			print ("\n\n")
 			print ("You have a " + str(self.player1.getHand()) + " for a total of " + str(self.total(self.player1.getHand())))
 			self.blackjack(self.dealer.getHand(), self.player1.getHand())
-			choice = input("Do you want to [H]it, [S]tand, or [Q]uit: ")
-			choice = choice.lower()
+			print ("\n\n")
+			print ("\n\n")
+			responseJson=server(self.sock)
+			choice = responseJson.get("id")
+			choice = int(choice)
 			self.clear()
-			if choice == "h":
+			if choice == 1:
 				self.hit(self.player1.getHand())
 				self.scoreOneHand(self.player1.getHand())
-			elif choice == "s":
+			elif choice == 2:
 				while self.total(self.dealer.getHand()) < 17:
 					self.hit(self.dealer.getHand())
 				self.score(self.dealer.getHand(), self.player1.getHand())
 				self.play_again()
-			elif choice == "q":
+			elif choice == 3:
 				print ("Bye!")
-				exit()
-		
+				#exit()
+				self.game=None
+				self.__init__()
+		self.sock.close()

@@ -6,10 +6,16 @@ import json
 
 from objects import BlackJackObject
 
-def server(sock):
-	
+def server():
+	UDP_IP = "127.0.0.1"
+	UDP_PORT = 5005
+
+	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+	sock.bind((UDP_IP, UDP_PORT))
+	print(sock)
+	players=0
+	sock.settimeout(60)
 	while True:
-		players=0
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 		request = json.loads(data.decode())
 		print (addr)
@@ -17,7 +23,7 @@ def server(sock):
 			if (players<=2):
 				response={"id" : 0, "message" : "success"}
 				sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
-				return (addr[0], addr[1])
+				break
 		elif (request.get("id")==1):
 			response={"id" : 1, "message" : "you hitted"}
 			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
