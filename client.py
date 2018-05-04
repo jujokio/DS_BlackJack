@@ -1,47 +1,55 @@
 import socket
 import struct
 import threading
+import json
 
-UDP_IP = "127.0.0.1"
-UDP_PORT_SERVER = 5005
-MESSAGE = "Hello, World!"
-UDP_PORT = 5006
 def server():
 	UDP_IP = "127.0.0.1"
 	UDP_PORT = 5006
 	global sock
 	global response
-	sock.settimeout(100)
+	sock.settimeout(10)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-		data = struct.unpack("ii",data)
+		print("jou")
+		response = json.loads(data.decode())
 		#join game response, 1=success
-		if (data[0]==0):
-			if (data[1]==1):
-				print "Liityit peliin"
+		print(response)
+		if (response.get("id")==0):
+			if (response.get("message")=="success"):
+				print ("Liityit peliin")
 			else:
-				print "Full game or no work"
+				print ("Full game or no work")
 				joinGame()
-		print "received message:", data
+		if (response.get("id")==1):
+			#
+			print("toinen request")
+		print ("received message:", response)
 
-UDP_PORT=int(raw_input("ana portti"))
+		
+UDP_IP = "127.0.0.1"
+UDP_PORT_SERVER = 5005
+MESSAGE = "Hello, World!"
+UDP_PORT = 5006
+#UDP_PORT=int(input("ana portti"))
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 sock.bind((UDP_IP, UDP_PORT))
 t = threading.Thread(target=server)
 t.start()
-print "UDP target IP:", UDP_IP
-print "UDP target port:", UDP_PORT_SERVER
-print "message:", MESSAGE
+print ("UDP target IP:", UDP_IP)
+print ("UDP target port:", UDP_PORT_SERVER)
+print ("message:", MESSAGE)
 
 def joinGame():
-	server_ip=raw_input("Anna palvelimen IP osoite: ")
+	server_ip=input("Anna palvelimen IP osoite: ")
 	server_ip='127.0.0.1'
-	print "Joining game"
-	print "--------------------------"
-	request = ""
-	request += struct.pack("i",0)# 0 = join game request
+	print ("Joining game")
+	print ("--------------------------")
 	try:
-		sock.sendto(request, (server_ip, UDP_PORT_SERVER))
+		request={"id" : 0}
+		data=json.dumps(request)
+		sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+		print(sock)
 	except:
 		joinGame()
 		
