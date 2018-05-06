@@ -13,25 +13,36 @@ def server():
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 		response = json.loads(data.decode())
 		#join game response, 1=success
-		print(response)
+		print(response.get("message"))
 		print("==============================\n\n")
 		if (response.get("id")==0):
-			if (response.get("message")=="success"):
+			if (response.get("status")=="success"):
+				if (response.get("playerAmount")==1):
+					print("Server waiting for another player...")
+				else:
+					print("2 Players ingame, starting game...")
+				response={"id" : 0, "status" : "success"}
+				s = json.dumps(response).encode()
+				sock.sendto(s, ( addr[0], addr[1] ))
 				print ("Liityit peliin")
 			else:
 				print ("Full game or no work")
 				joinGame()
-		elif (response.get("id")==1):
+		elif (response.get("id")==1): #hit response from server
 			#
 			print("hitted")
-		elif (response.get("id")==2):
+		elif (response.get("id")==2): #stand response from server
 			#
-			print(response.get("message"))
+			print(response.get("message")) # quit response
 		elif (response.get("id")==3):
 			#
 			print("quit")
-		print ("received message:", response)
-		print (response)
+		elif (response.get("id")==4): #error response, server waiting for someone else
+			print(response.get("message"))
+		elif (response.get("id")==5): #state response, gives info for state
+			if (response.get("state")=="dealing"):
+				print("Game started, dealer dealing")
+
 		
 UDP_IP = "127.0.0.1"
 UDP_PORT_SERVER = 5005
@@ -39,7 +50,11 @@ MESSAGE = "Hello, World!"
 UDP_PORT = 5006
 #UDP_PORT=int(input("ana portti"))
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-sock.bind((UDP_IP, UDP_PORT))
+try:
+	sock.bind((UDP_IP, UDP_PORT))
+except OSError:
+	sock.bind((UDP_IP, UDP_PORT+1))
+
 t = threading.Thread(target=server)
 t.start()
 print ("UDP target IP:", UDP_IP)
@@ -92,7 +107,10 @@ commands = {0 : joinGame,
 while True:
 	try:
 		command=int(input("give command: "))
-		commands[command](server_ip)
+		try:
+			commands[command](server_ip)
+		except KeyError:
+			print("Give a proper command")
 		print("\n\n")
 	except ValueError:
 		continue
