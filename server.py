@@ -91,6 +91,9 @@ def sendMessageAndReceiveResponse(sock, ip, port, message):
 				sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 				break
 			print ("received message:", request)
+		else:
+			response={"id" : 4, "message" : "Not your turn"}
+			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 	return response
 
 
