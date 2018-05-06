@@ -8,13 +8,13 @@ def server():
 	UDP_PORT = 5006
 	global sock
 	global response
-	sock.settimeout(30)
+	sock.settimeout(45)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-		print("jou")
 		response = json.loads(data.decode())
 		#join game response, 1=success
 		print(response)
+		print("==============================\n\n")
 		if (response.get("id")==0):
 			if (response.get("message")=="success"):
 				print ("Liityit peliin")
@@ -31,7 +31,7 @@ def server():
 			#
 			print("quit")
 		print ("received message:", response)
-
+		print (response)
 		
 UDP_IP = "127.0.0.1"
 UDP_PORT_SERVER = 5005
@@ -46,15 +46,15 @@ print ("UDP target IP:", UDP_IP)
 print ("UDP target port:", UDP_PORT_SERVER)
 print ("message:", MESSAGE)
 
-def joinGame(server_ip):
+def joinGame(server_ip=UDP_IP):
 	#server_ip=input("Anna palvelimen IP osoite: ")
-	print ("Joining game")
-	print ("--------------------------")
+	print ("Joining game...")
+	print ("--------------------------\n\n")
 	try:
 		request={"id" : 0}
 		data=json.dumps(request)
 		sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
-		print(sock)
+		#print(sock)
 	except:
 		joinGame()
 		
@@ -90,8 +90,14 @@ commands = {0 : joinGame,
            3 : sendExitMessage,
 }
 while True:
-	command=int(input("give command: "))
-	commands[command](server_ip)
+	try:
+		command=int(input("give command: "))
+		commands[command](server_ip)
+		print("\n\n")
+	except ValueError:
+		continue
+
+	command=None
 #message = ""
 #message += struct.pack("i",4)
 #message += struct.pack("i",3)

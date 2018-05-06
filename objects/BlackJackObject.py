@@ -3,7 +3,7 @@ Edited from https://gist.github.com/mjhea0/5680216
 """
 import os
 import random
-from server import server
+from server import *
 import socket
 import struct
 import sys
@@ -15,7 +15,7 @@ class Player():
 	name = None
 	port = ""
 	ip = ""
-	def __init__(self, port, ip, name=None):
+	def __init__(self, ip, port,  name=None):
 		self.name = name
 		self.port = port
 		self.ip = ip
@@ -28,7 +28,10 @@ class Player():
 		self.name = name
 	def getName(self):
 		return self.name
-		
+	def getIP(self):
+		return self.ip
+	def getPort(self):
+		return self.port	
 		
 		
 class BlackJackGameObject():
@@ -43,29 +46,28 @@ class BlackJackGameObject():
 	def __init__(self):
 		self.deck = self.createDeck()
 		#game = self.game()
-		
-		
+				
 	def bindSocket(self):
 		UDP_IP = "127.0.0.1"
 		UDP_PORT = 5005
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
-	
-	
+		self.sock.settimeout(45)
+		
 	def waitForPlayers(self):
 		print("Waiting for players:")
 		client_ip, client_port = server(self.sock)
 		self.player1 = Player(client_ip, client_port)
 		print(client_ip, client_port)
+		sendMessageAndReceiveResponse(self.sock, self.player1.getIP(), self.player1.getPort(), "WELCOME TO DISTRIBUTED BLACKJACK!\n")
+
+		
 		
 		#client_ip, client_port = server()
-		#player2 = Player(client_ip, client_port)
-			
+		#player2 = Player(client_ip, client_port)			
 		
 	def running(self):
-		return True if game is not None else None
-		
-		
+		return True if game is not None else None	
 		
 	def getHands(self):
 		hands = {
@@ -74,13 +76,13 @@ class BlackJackGameObject():
 			"dealer":dealer.getHand(),
 		}
 		return hands
+	
 	def createDeck(self):
 		deck = []
 		for j in range(4):
 			for i in range(2,15):
 				deck.append(i)
 		return deck
-
 
 	def deal(self, deck):
 		hand = []
@@ -165,7 +167,6 @@ class BlackJackGameObject():
 			self.print_results(dealer_hand, player_hand)			   
 			print ("Congratulations. Your score is higher than the dealer. You win\n")		
 		
-		
 	def scoreOneHand(self, hand):
 		if self.total(hand) == 21:
 			print ("Congratulations! You got a Blackjack!\n")
@@ -175,6 +176,7 @@ class BlackJackGameObject():
 			self.play_again()	
 		
 	def game(self):
+
 		choice = 0
 		self.clear()
 		print ("WELCOME TO DISTRIBUTED BLACKJACK!\n")
@@ -189,7 +191,7 @@ class BlackJackGameObject():
 			self.blackjack(self.dealer.getHand(), self.player1.getHand())
 			print ("\n\n")
 			print ("\n\n")
-			responseJson=server(self.sock)
+			responseJson = server(self.sock)
 			choice = responseJson.get("id")
 			choice = int(choice)
 			self.clear()
@@ -207,3 +209,4 @@ class BlackJackGameObject():
 				self.game=None
 				self.__init__()
 		self.sock.close()
+		

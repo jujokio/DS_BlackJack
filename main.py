@@ -6,7 +6,7 @@ from objects import BlackJackObject
 
 
 if __name__ == "__main__":
-	
+	print("Starting the DBJ server...")
 	while True:
 		try:
 			game = BlackJackObject.BlackJackGameObject()
