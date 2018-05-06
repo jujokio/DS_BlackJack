@@ -81,15 +81,27 @@ def sendMessageAndReceiveResponse(sock, ip, port, response):
 				response={"id" : 3, "message" : "you quit"}
 				sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 				break
+			elif (request.get("id")==6):
+				if (request.get("status")=="success"):
+					break
 			print ("received message:", request)
 		else:
 			response={"id" : 4, "message" : "Not your turn"}
 			sock.sendto(json.dumps(response).encode(), (addr[0], addr[1]))
 	return response
 
+def timer():
+		global gameTime
+		while True:
+
+			time.sleep(1)
+			gameTime=gameTime-1
 
 if __name__ == "__main__":	
+	gameTime=0
 	try:	
+		t = threading.Thread(target=server)
+		t.start()
 		t = threading.Thread(target=server)
 		t.start()
 	except KeyboardInterrupt:

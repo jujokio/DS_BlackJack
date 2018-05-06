@@ -9,7 +9,9 @@ import struct
 import sys
 import threading
 import json
+import time
 deck = []
+
 class Player():
 	hand=[]
 	name = None
@@ -44,11 +46,14 @@ class BlackJackGameObject():
 	deck = []
 	game = None
 	sock = None
+	gameTime=2
 	
 
 	def __init__(self):
 		self.deck = self.createDeck()
 		#game = self.game()
+		t = threading.Thread(target=timer)
+		t.start()
 				
 	def bindSocket(self):
 		UDP_IP = "127.0.0.1"
@@ -56,7 +61,7 @@ class BlackJackGameObject():
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(45)
-		
+
 	def waitForPlayers(self):
 		time =0
 		while len(self.playerList) <= 1:
@@ -142,8 +147,8 @@ class BlackJackGameObject():
 
 	def print_results(self, dealer_hand, player_hand):
 		self.clear()
-		print ("The dealer has a " + str(dealer_hand) + " for a total of " + str(self.total(dealer_hand)))
-		print ("You have a " + str(player_hand) + " for a total of " + str(self.total(player_hand)))
+		return ("The dealer has a " + str(dealer_hand) + " for a total of " + str(self.total(dealer_hand)))
+		return ("You have a " + str(player_hand) + " for a total of " + str(self.total(player_hand)))
 		
 	def blackjack(self, dealer_hand, player_hand):
 		if self.total(player_hand) == 21:
@@ -161,22 +166,22 @@ class BlackJackGameObject():
 
 	def score(self, dealer_hand, player_hand):
 		if self.total(player_hand) == 21:
-			self.print_results(dealer_hand, player_hand)
+			return self.print_results(dealer_hand, player_hand)
 			print ("Congratulations! You got a Blackjack!\n")
 		elif self.total(dealer_hand) == 21:
-			self.print_results(dealer_hand, player_hand)		
+			return self.print_results(dealer_hand, player_hand)		
 			print ("Sorry, you lose. The dealer got a blackjack.\n")
 		elif self.total(player_hand) > 21:
-			self.print_results(dealer_hand, player_hand)
+			return self.print_results(dealer_hand, player_hand)
 			print ("Sorry. You busted. You lose.\n")
 		elif self.total(dealer_hand) > 21:
-			self.print_results(dealer_hand, player_hand)			   
+			return self.print_results(dealer_hand, player_hand)			   
 			print ("Dealer busts. You win!\n")
 		elif self.total(player_hand) < self.total(dealer_hand):
-			self.print_results(dealer_hand, player_hand)
+			return self.print_results(dealer_hand, player_hand)
 			print ("Sorry. Your score isn't higher than the dealer. You lose.\n")
 		elif self.total(player_hand) > self.total(dealer_hand):
-			self.print_results(dealer_hand, player_hand)			   
+			return self.print_results(dealer_hand, player_hand)			   
 			print ("Congratulations. Your score is higher than the dealer. You win\n")		
 		
 	def scoreOneHand(self, hand):
@@ -190,7 +195,7 @@ class BlackJackGameObject():
 			return True	
 
 	def game(self):
-
+		print(self.gameTime)
 		choice = 0
 		self.clear()
 		self.dealer.setHand(self.deal(self.deck))
@@ -203,7 +208,7 @@ class BlackJackGameObject():
 			#lähetä your turn
 			message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
-			response={"id" : 5, "message" : message, "status" : "success", "state" : "now it is your turn"}
+			response={"id" : 6, "message" : message, "status" : "success", "state" : "yourturn"}
 			s = json.dumps(response).encode()
 			#send status
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
@@ -217,7 +222,7 @@ class BlackJackGameObject():
 					#create status message
 					message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 					
-					response={"id" : 5, "message" : message, "status" : "success", "state" : "your turn"}
+					response={"id" : 5, "message" : message}
 					s = json.dumps(response).encode()
 					#send status
 					responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
@@ -247,7 +252,7 @@ class BlackJackGameObject():
 			# player ends their turn
 			message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
-			response={"id" : 5, "message" : message, "status" : "success", "state" : "Your turn ended"}
+			response={"id" : 6, "message" : message, "status" : "success", "state" : "endOfTurn"}
 			s = json.dumps(response).encode()
 			#send status
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
@@ -257,16 +262,16 @@ class BlackJackGameObject():
 			self.hit(self.dealer.getHand())
 
 		for player in self.playerList:
-			self.score(self.dealer.getHand(),player.getHand())
+			message = self.score(self.dealer.getHand(),player.getHand())
 
-			message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
+			#message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
-			response={"id" : 5, "message" : message, "status" : "success", "state" : "Game ended"}
+			response={"id" : 6, "message" : message, "status" : "success", "state" : "endOfGame"}
 			s = json.dumps(response).encode()
 			#send status
 			responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
-			sendMessageAndReceiveResponse()
+			player.setPlaying()
 
-
-		self.sock.close()
+		self.deck = self.createDeck()
+		#self.sock.close()
 		
