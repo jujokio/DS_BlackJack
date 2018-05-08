@@ -18,6 +18,8 @@ class Player():
 	port = ""
 	ip = ""
 	isPlaying = True
+	quit = False
+	
 	def __init__(self, ip, port,  name=None):
 		self.name = name
 		self.port = port
@@ -36,8 +38,11 @@ class Player():
 		return self.port	
 	def setPlaying(self):
 		self.isPlaying = not self.isPlaying
-	
-	
+	def setQuit(self):
+		self.quit= True
+	def getPort(self):
+		return self.quit
+
 		
 		
 class BlackJackGameObject():
@@ -63,7 +68,8 @@ class BlackJackGameObject():
 		#startTimer()
 
 	def waitForPlayers(self):
-		while len(self.playerList) <= 1:
+		#len(self.playerList) <= 1
+		while True:
 			print("Waiting for players:")
 			try:
 				client_ip, client_port = getPlayer(self.sock)
@@ -149,8 +155,7 @@ class BlackJackGameObject():
 
 	def print_results(self, dealer_hand, player_hand):
 		self.clear()
-		return ("The dealer has a " + str(dealer_hand) + " for a total of " + str(self.total(dealer_hand)))
-		return ("You have a " + str(player_hand) + " for a total of " + str(self.total(player_hand)))
+		return ("The dealer has a " + str(dealer_hand) + " for a total of " + str(self.total(dealer_hand))) + ("\nYou have a " + str(player_hand) + " for a total of " + str(self.total(player_hand)))
 		
 	def blackjack(self, dealer_hand, player_hand):
 		if self.total(player_hand) == 21:
@@ -167,24 +172,26 @@ class BlackJackGameObject():
 			return False
 
 	def score(self, dealer_hand, player_hand):
+		message = ""
 		if self.total(player_hand) == 21:
-			return self.print_results(dealer_hand, player_hand)
-			print ("Congratulations! You got a Blackjack!\n")
+			message += self.print_results(dealer_hand, player_hand)
+			message +=  "\nCongratulations! You got a Blackjack!\n"
 		elif self.total(dealer_hand) == 21:
-			return self.print_results(dealer_hand, player_hand)		
-			print ("Sorry, you lose. The dealer got a blackjack.\n")
+			message +=  self.print_results(dealer_hand, player_hand)		
+			message +=  "\nSorry, you lose. The dealer got a blackjack.\n"
 		elif self.total(player_hand) > 21:
-			return self.print_results(dealer_hand, player_hand)
-			print ("Sorry. You busted. You lose.\n")
+			message +=  self.print_results(dealer_hand, player_hand)
+			message +=  "\nSorry. You busted. You lose.\n"
 		elif self.total(dealer_hand) > 21:
-			return self.print_results(dealer_hand, player_hand)			   
-			print ("Dealer busts. You win!\n")
+			message +=  self.print_results(dealer_hand, player_hand)			   
+			message +=  "\nDealer busts. You win!\n"
 		elif self.total(player_hand) < self.total(dealer_hand):
-			return self.print_results(dealer_hand, player_hand)
-			print ("Sorry. Your score isn't higher than the dealer. You lose.\n")
+			message +=  self.print_results(dealer_hand, player_hand)
+			message +=  "\nSorry. Your score isn't higher than the dealer. You lose.\n"
 		elif self.total(player_hand) > self.total(dealer_hand):
-			return self.print_results(dealer_hand, player_hand)			   
-			print ("Congratulations. Your score is higher than the dealer. You win\n")		
+			message +=  self.print_results(dealer_hand, player_hand)			   
+			message +=  "\nCongratulations. Your score is higher than the dealer. You win\n"	
+		return message
 		
 	def scoreOneHand(self, hand):
 		if self.total(hand) == 21:
@@ -223,12 +230,15 @@ class BlackJackGameObject():
 					#create status message
 					message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 					
-					response={"id" : 5, "message" : message}
+					response={"id" : 5}
 					s = json.dumps(response).encode()
 					#send status
-					responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
-
-					choice = responseJson.get("id")
+					try:
+						responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
+						choice = responseJson.get("id")
+					except socket.timeout:
+						print ("player timeout") 
+						choise = 3
 					choice = int(choice)
 					self.clear()
 					if choice == 1:
@@ -237,17 +247,17 @@ class BlackJackGameObject():
 							player.setPlaying()
 					elif choice == 2:
 						player.setPlaying()
+						
 						#self.play_again()
 					elif choice == 3:
 						print ("Bye!")
 						player.setPlaying()
-						#exit()
-						#self.game=None
-						#self.__init__()
+						player.setQuit()
+						print(player)
+						print(self.playerList)
 				else:
 					#player or delare black jack!
 					player.setPlaying()
-					self.playerList.remove(player)
 					print("BLACK JACK idk?")
 
 
@@ -262,7 +272,7 @@ class BlackJackGameObject():
 		# dealer plays his hand
 		while self.total(self.dealer.getHand()) < 17:
 			self.hit(self.dealer.getHand())
-
+		#send results to all players
 		for player in self.playerList:
 			message = self.score(self.dealer.getHand(),player.getHand())
 
@@ -274,6 +284,10 @@ class BlackJackGameObject():
 			responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 			player.setPlaying()
 
+		for player in self.playerList:
+			if player.getQuit():
+				self.playerList.remove(player)
+				
 		self.deck = self.createDeck()
 		#self.sock.close()
 		
