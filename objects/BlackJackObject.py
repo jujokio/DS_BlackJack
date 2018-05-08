@@ -60,14 +60,16 @@ class BlackJackGameObject():
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(45)
-		startTimer()
+		#startTimer()
 
 	def waitForPlayers(self):
-		time =0
 		while len(self.playerList) <= 1:
-			
 			print("Waiting for players:")
-			client_ip, client_port = getPlayer(self.sock)
+			try:
+				client_ip, client_port = getPlayer(self.sock)
+			except socket.timeout:
+				print ("timeout")
+				return
 			#self.player1 = Player(client_ip, client_port)
 			player = Player(client_ip, client_port)
 			self.playerList.append(player)

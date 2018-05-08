@@ -6,13 +6,24 @@ import json
 import time
 import traceback
 
+
+global gameTime
+global timeOut
+gameTime = 0
+timeOut =False
+
+
 def getPlayer(sock):
-	while True:
-		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-		request = json.loads(data.decode())
-		print (addr)
-		if (request.get("id")==0):#Join game
-			return (addr[0], addr[1])
+	global gameTime
+	global timeOut
+
+	sock.settimeout(30)
+	data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+	request = json.loads(data.decode())
+	print (addr)
+	if (request.get("id")==0):#Join game
+		return (addr[0], addr[1])
+	
 
 def sendMessageAndReceiveResponse(sock, ip, port, response):
 	#send message to player
@@ -48,22 +59,29 @@ def sendMessageAndReceiveResponse(sock, ip, port, response):
 	return response
 
 def startTimer():
-	traceback.print_exc(file=sys.stdout)
-	print ("\n\n\n")
-	gameTime=0
-	print("called start timer")
+	print ("startTimer\n\n\n")
+	global gameTime
+	global timeOut	
+	print (gameTime, timeOut)
 	tim = threading.Thread(target=timer)
 	tim.start()
 	
 	
 def timer():
-	print("timer thread!!!!!!!!!!!!!")
+	print ("timer thread\n\n\n")
 	global gameTime
+	global timeOut
 	while True:
 		time.sleep(1)
-		if gameTime is None:
-			print("create gametime pls thread!!!!!!!!!!!!!")
-			gameTime =0
+		if gameTime >= 9:
+			print("10 sec TimeOut called!")
+			timeOut = True
+			gameTime=0
+		elif (gameTime >= 5 and timeOut):
+			print("timeout reset")
+			timeOut = False
+			gameTime=0
+		
 		gameTime += 1
 
 if __name__ == "__main__":	

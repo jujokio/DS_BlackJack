@@ -10,9 +10,9 @@ if __name__ == "__main__":
 	print("Starting the DBJ server...")
 	game = BlackJackObject.BlackJackGameObject()
 	game.bindSocket()
+	
 	while True:
 		try:
-			
 			game.waitForPlayers()
 			game.game()
 		except KeyboardInterrupt:
