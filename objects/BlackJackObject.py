@@ -46,14 +46,13 @@ class BlackJackGameObject():
 	deck = []
 	game = None
 	sock = None
-	gameTime=2
 	
 
 	def __init__(self):
 		self.deck = self.createDeck()
 		#game = self.game()
-		t = threading.Thread(target=timer)
-		t.start()
+		#t = threading.Thread(target=timer)
+		#t.start()
 				
 	def bindSocket(self):
 		UDP_IP = "127.0.0.1"
@@ -61,13 +60,14 @@ class BlackJackGameObject():
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(45)
+		startTimer()
 
 	def waitForPlayers(self):
 		time =0
 		while len(self.playerList) <= 1:
 			
 			print("Waiting for players:")
-			client_ip, client_port = server(self.sock)
+			client_ip, client_port = getPlayer(self.sock)
 			#self.player1 = Player(client_ip, client_port)
 			player = Player(client_ip, client_port)
 			self.playerList.append(player)
@@ -195,7 +195,6 @@ class BlackJackGameObject():
 			return True	
 
 	def game(self):
-		print(self.gameTime)
 		choice = 0
 		self.clear()
 		self.dealer.setHand(self.deal(self.deck))
@@ -246,6 +245,7 @@ class BlackJackGameObject():
 				else:
 					#player or delare black jack!
 					player.setPlaying()
+					self.playerList.remove(player)
 					print("BLACK JACK idk?")
 
 
