@@ -57,8 +57,8 @@ class BlackJackGameObject():
 		self.deck = self.createDeck()
 
 	def bindSocket(self):
-		UDP_IP = "130.231.60.50"
-		UDP_PORT = 5005
+		UDP_IP = "0.0.0.0"
+		UDP_PORT = 10001
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(60)
