@@ -101,15 +101,13 @@ def joingame(server_ip):
 	global ingame
 	global yourTurn
 	if not ingame and not yourTurn:
-		#server_ip=input("Anna palvelimen IP osoite: ")
 		print ("Joining game...")
 		try:
 			request={"id" : 0}
 			data=json.dumps(request)
 			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
-			#print(sock)
 		except:
-			joingame()
+			print("Something went wrong.")
 		
 def sendHitRequest(server_ip):
 	global ingame
@@ -151,7 +149,9 @@ def clear(ip):
 	if os.name == 'posix':
 		os.system('clear')
 			
-server_ip='130.231.60.50'
+server_ip=input("Give blackjack server ip: ")
+if (server_ip=="0"):
+	server_ip="130.231.60.50"
 response=""
 
 commands = {0 : joingame,
@@ -167,7 +167,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 for i in range(0, 30):
 	try:
 		print(UDP_PORT+i)
-		sock.bind((UDP_IP, UDP_PORT+i))
+		sock.bind(("0.0.0.0", UDP_PORT+i))
 		break
 	except OSError:
 		continue
