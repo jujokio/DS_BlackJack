@@ -55,17 +55,13 @@ class BlackJackGameObject():
 
 	def __init__(self):
 		self.deck = self.createDeck()
-		#game = self.game()
-		#t = threading.Thread(target=timer)
-		#t.start()
-				
+
 	def bindSocket(self):
-		UDP_IP = "127.0.0.1"
+		UDP_IP = "130.231.60.50"
 		UDP_PORT = 5005
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(60)
-		#startTimer()
 
 	def waitForPlayers(self):
 		#len(self.playerList) <= 1
@@ -122,7 +118,6 @@ class BlackJackGameObject():
 
 		self.game=None
 		self.__init__()
-		#exit()
 
 	def total(self, hand):
 		total = 0
@@ -148,7 +143,6 @@ class BlackJackGameObject():
 		return hand
 
 	def clear(self):
-		return
 		if os.name == 'nt':
 			os.system('CLS')
 		if os.name == 'posix':

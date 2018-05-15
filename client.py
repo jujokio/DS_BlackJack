@@ -13,7 +13,7 @@ ingame=False
 yourTurn=False
 
 UDP_IP = "127.0.0.1"
-UDP_PORT_SERVER = 5005
+UDP_PORT_SERVER = 10001
 UDP_PORT = 5006
 
 def flush_input():
@@ -26,8 +26,6 @@ def flush_input():
         termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
 def server():
-	UDP_IP = "127.0.0.1"
-	UDP_PORT = 5006
 	global sock
 	global response
 	global ingame
@@ -99,7 +97,7 @@ def server():
 		
 
 
-def joingame(server_ip=UDP_IP):
+def joingame(server_ip):
 	global ingame
 	global yourTurn
 	if not ingame and not yourTurn:
@@ -153,7 +151,7 @@ def clear(ip):
 	if os.name == 'posix':
 		os.system('clear')
 			
-server_ip='127.0.0.1'
+server_ip='130.231.60.50'
 response=""
 
 commands = {0 : joingame,
@@ -176,7 +174,7 @@ for i in range(0, 30):
 
 t = threading.Thread(target=server)
 t.start()
-print ("UDP target IP:", UDP_IP)
+print ("UDP target IP:", server_ip)
 print ("UDP target port:", UDP_PORT_SERVER)
 print("Commands:\n 0 = Joingame\n 1 = Hit\n 2 = Stand\n 3 = Quit\n 4 = Clear console\n")
 
