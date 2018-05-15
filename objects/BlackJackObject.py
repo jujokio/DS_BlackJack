@@ -23,7 +23,7 @@ class Player():
 	def __init__(self, ip, port,  name=None):
 		self.name = name
 		self.port = port
-		self.ip = ip		
+		self.ip = ip	
 	def setHand(self, hand):
 		self.hand = hand
 	def getHand(self):
@@ -40,7 +40,7 @@ class Player():
 		self.isPlaying = not self.isPlaying
 	def setQuit(self):
 		self.quit= True
-	def getPort(self):
+	def getQuit(self):
 		return self.quit
 
 		
@@ -64,7 +64,7 @@ class BlackJackGameObject():
 		UDP_PORT = 5005
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
-		self.sock.settimeout(45)
+		self.sock.settimeout(60)
 		#startTimer()
 
 	def waitForPlayers(self):
@@ -79,7 +79,8 @@ class BlackJackGameObject():
 			#self.player1 = Player(client_ip, client_port)
 			player = Player(client_ip, client_port)
 			self.playerList.append(player)
-
+			print(client_port)
+			print(player.getPort())
 			#print(client_ip, client_port)
 			playersAmount=len(self.playerList)
 			response={"id" : 0, "message" : "WELCOME TO DISTRIBUTED BLACKJACK!\n", "status" : "success", "playerAmount" : playersAmount}
@@ -221,7 +222,7 @@ class BlackJackGameObject():
 			#send status
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 
-			while player.isPlaying:
+			while player.isPlaying and not player.getQuit():
 				print ("The dealer is showing a " + str(self.dealer.getHand()[0]))
 				print ("\n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand())))
 
@@ -230,7 +231,7 @@ class BlackJackGameObject():
 					#create status message
 					message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 					
-					response={"id" : 5}
+					response={"id" : 5, "message":message}
 					s = json.dumps(response).encode()
 					#send status
 					try:
@@ -238,7 +239,7 @@ class BlackJackGameObject():
 						choice = responseJson.get("id")
 					except socket.timeout:
 						print ("player timeout") 
-						choise = 3
+						choice = 3
 					choice = int(choice)
 					self.clear()
 					if choice == 1:

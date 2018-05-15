@@ -16,7 +16,14 @@ UDP_IP = "127.0.0.1"
 UDP_PORT_SERVER = 5005
 UDP_PORT = 5006
 
-
+def flush_input():
+    try:
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
+    except ImportError:
+        import sys, termios
+        termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
 def server():
 	UDP_IP = "127.0.0.1"
@@ -25,16 +32,10 @@ def server():
 	global response
 	global ingame
 	global yourTurn
-	sock.settimeout(45)
+	sock.settimeout(60)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 		response = json.loads(data.decode())
-		
-		print("==============================\n\n")
-		print(response.get("message"))
-		print("==============================\n\n")
-		
-		#print("Commands:\n 0 = Joingame\n 1 = Hit\n 2 = Stand\n 3 = Quit\n 4 = Clear console\n")
 		if (response.get("id")==0):
 			if (response.get("status")=="success"):
 				ingame=True
@@ -61,6 +62,14 @@ def server():
 		elif (response.get("id")==4): #error response, server waiting for someone else
 			print(response.get("message"))
 			
+		elif (response.get("id")==5): #error response, server waiting for someone else
+			clear("")
+			print("============SERVER============\n\n")
+			print(response.get("message"))
+			print("==============================\n\n")
+			print("Commands:\n 0 = Joingame\n 1 = Hit\n 2 = Stand\n 3 = Quit\n 4 = Clear console\n")
+			print("Give command:")
+			
 		elif (response.get("id")==6): #state response, gives info for state
 			if (response.get("state")=="dealing"):
 				print("Game started, dealer dealing")
@@ -69,15 +78,20 @@ def server():
 				ingame = True
 			elif (response.get("state")=="endOfTurn"):
 				yourTurn=False
+				clear("")
+				print("============SERVER============\n\n")
+				print(response.get("message"))
+				print("==============================\n\n")
 				print("Your turn ended.")
 			elif (response.get("state")=="endOfGame"):
 				yourTurn=False
-				ingame = False
-				print ("\n\n")
+				ingame = True
+				clear("")
 				print("Game ended.")
 				print("*"*10)
 				print(response.get("message"))
 				print("*"*10)
+				print("Waiting for new game...")
 			response={"id" : 6, "status" : "success"}
 			s = json.dumps(response).encode()
 			sock.sendto(s, ( addr[0], addr[1] ))
@@ -149,12 +163,14 @@ commands = {0 : joingame,
 		   4 : clear,
 }
 
-
+global sock
 #UDP_PORT=int(input("ana portti"))
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 for i in range(0, 30):
 	try:
+		print(UDP_PORT+i)
 		sock.bind((UDP_IP, UDP_PORT+i))
+		break
 	except OSError:
 		continue
 
@@ -163,11 +179,12 @@ t.start()
 print ("UDP target IP:", UDP_IP)
 print ("UDP target port:", UDP_PORT_SERVER)
 print("Commands:\n 0 = Joingame\n 1 = Hit\n 2 = Stand\n 3 = Quit\n 4 = Clear console\n")
+
 while True:
-	#print(message)
 	if (yourTurn or not ingame):
 		try:
-			command=int(input("give command: "))
+			flush_input()
+			command=int(input())
 			try:
 				commands[command](server_ip)
 				command=None
@@ -177,7 +194,3 @@ while True:
 			print("\n\n")
 		except ValueError:
 			command=None
-#message = ""
-#message += struct.pack("i",4)
-#message += struct.pack("i",3)
-#sock.sendto(message, (UDP_IP, UDP_PORT_SERVER))
