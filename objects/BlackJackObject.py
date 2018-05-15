@@ -168,7 +168,10 @@ class BlackJackGameObject():
 
 	def score(self, dealer_hand, player_hand):
 		message = ""
-		if self.total(player_hand) == 21:
+		if self.total(player_hand) == self.total(dealer_hand):
+			message += self.print_results(dealer_hand, player_hand)
+			message +=  "\nIt is a draw\n"
+		elif self.total(player_hand) == 21:
 			message += self.print_results(dealer_hand, player_hand)
 			message +=  "\nCongratulations! You got a Blackjack!\n"
 		elif self.total(dealer_hand) == 21:

@@ -162,7 +162,6 @@ commands = {0 : joingame,
 }
 
 global sock
-#UDP_PORT=int(input("ana portti"))
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 for i in range(0, 30):
 	try:
