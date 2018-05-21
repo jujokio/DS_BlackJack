@@ -4,7 +4,8 @@ import threading
 import json
 import os
 import sys
-
+from Crypto.Cipher import AES
+import base64
 
 #variables
 global ingame
@@ -13,8 +14,8 @@ ingame=False
 yourTurn=False
 
 UDP_IP = "127.0.0.1"
-UDP_PORT_SERVER = 10001
-UDP_PORT = 5006
+UDP_PORT_SERVER = 5006
+UDP_PORT = 5007
 
 def flush_input():
     try:
@@ -25,6 +26,36 @@ def flush_input():
         import sys, termios
         termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
+MASTER_KEY="NoName_WELCOMETODISTRIBUTEDFUCKFEST"
+def cypher_aes(msg_text, encrypt=True, secret_key=MASTER_KEY):
+    # an AES key must be either 16, 24, or 32 bytes long
+    # in this case we make sure the key is 32 bytes long by adding padding and/or slicing if necessary
+    remainder = len(secret_key) % 16
+    modified_key = secret_key.ljust(len(secret_key) + (16 - remainder))[:32]
+    print(modified_key)
+
+    # input strings must be a multiple of 16 in length
+    # we achieve this by adding padding if necessary
+    remainder = len(msg_text) % 16
+    modified_text = msg_text.ljust(len(msg_text) + (16 - remainder))
+    print(modified_text)
+
+    cipher = AES.new(modified_key, AES.MODE_ECB)  # use of ECB mode in enterprise environments is very much frowned upon
+
+    if encrypt:
+        return base64.b64encode(cipher.encrypt(modified_text)).strip()
+
+    return cipher.decrypt(base64.b64decode(modified_text)).strip()
+def encrypt_val(clear_text):    
+    return cypher_aes(clear_text,True)
+
+def decrypt_val(text):
+    temp = cypher_aes(text,False)
+    temp = temp.strip('\0'.encode())
+    return temp
+	
+	
+	
 def server():
 	global sock
 	global response
@@ -40,6 +71,7 @@ def server():
 				if (response.get("playerAmount")):
 					print(response.get("playerAmount"), "players ingame, starting game in 20sec...")
 				response={"id" : 0, "status" : "success"}
+				response = encrypt_val(response)
 				s = json.dumps(response).encode()
 				sock.sendto(s, ( addr[0], addr[1] ))
 				print ("Liityit peliin")
@@ -91,6 +123,7 @@ def server():
 				print("*"*10)
 				print("Waiting for new game...")
 			response={"id" : 6, "status" : "success"}
+			response = encrypt_val(response)
 			s = json.dumps(response).encode()
 			sock.sendto(s, ( addr[0], addr[1] ))
 		response = None
@@ -105,8 +138,10 @@ def joingame(server_ip):
 		try:
 			request={"id" : 0}
 			data=json.dumps(request)
-			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
-		except:
+			data = encrypt_val(data)
+			sock.sendto(data, (server_ip, UDP_PORT_SERVER))
+		except Exception as err:
+			print(err)
 			print("Something went wrong.")
 		
 def sendHitRequest(server_ip):
@@ -128,6 +163,7 @@ def sendStandRequest(server_ip):
 		try:
 			request={"id" : 2}
 			data=json.dumps(request)
+			data = encrypt_val(data)
 			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
 		except:
 			sendHitRequest(server_ip)
@@ -138,6 +174,7 @@ def sendExitMessage(server_ip):
 		try:
 			request={"id" : 3}
 			data=json.dumps(request)
+			data = encrypt_val(data)
 			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
 		except:
 			sendHitRequest(server_ip)
@@ -152,6 +189,8 @@ def clear(ip):
 server_ip=input("Give blackjack server ip: ")
 if (server_ip=="0"):
 	server_ip="130.231.60.50"
+if (server_ip=="1"):
+	server_ip="127.0.0.1"
 response=""
 
 commands = {0 : joingame,

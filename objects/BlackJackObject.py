@@ -10,7 +10,39 @@ import sys
 import threading
 import json
 import time
+from Crypto.Cipher import AES
+import base64
+
 deck = []
+
+MASTER_KEY="NoName_WELCOMETODISTRIBUTEDFUCKFEST"
+def cypher_aes(msg_text, encrypt=True, secret_key=MASTER_KEY):
+    # an AES key must be either 16, 24, or 32 bytes long
+    # in this case we make sure the key is 32 bytes long by adding padding and/or slicing if necessary
+    remainder = len(secret_key) % 16
+    modified_key = secret_key.ljust(len(secret_key) + (16 - remainder))[:32]
+    print(modified_key)
+
+    # input strings must be a multiple of 16 in length
+    # we achieve this by adding padding if necessary
+    remainder = len(msg_text) % 16
+    modified_text = msg_text.ljust(len(msg_text) + (16 - remainder))
+    print(modified_text)
+
+    cipher = AES.new(modified_key, AES.MODE_ECB)  # use of ECB mode in enterprise environments is very much frowned upon
+
+    if encrypt:
+        return base64.b64encode(cipher.encrypt(modified_text)).strip()
+
+    return cipher.decrypt(base64.b64decode(modified_text)).strip()
+def encrypt_val(clear_text):    
+    return cypher_aes(clear_text,True)
+
+def decrypt_val(text):
+    temp = cypher_aes(text,False)
+    temp = temp.strip('\0'.encode())
+    return temp
+	
 
 class Player():
 	hand=[]
@@ -57,8 +89,8 @@ class BlackJackGameObject():
 		self.deck = self.createDeck()
 
 	def bindSocket(self):
-		UDP_IP = "0.0.0.0"
-		UDP_PORT = 10001
+		UDP_IP = "127.0.0.1"
+		UDP_PORT = 5006
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		self.sock.bind((UDP_IP, UDP_PORT))
 		self.sock.settimeout(60)
