@@ -112,7 +112,7 @@ class BlackJackGameObject():
 			#print(client_ip, client_port)
 			playersAmount=len(self.playerList)
 			response={"id" : 0, "message" : "WELCOME TO DISTRIBUTED BLACKJACK!\n", "status" : "success", "playerAmount" : playersAmount}
-			s = json.dumps(response).encode()
+			s = json.dumps(response)
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 		
 	def running(self):
@@ -247,7 +247,7 @@ class BlackJackGameObject():
 			message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
 			response={"id" : 6, "message" : message, "status" : "success", "state" : "yourturn"}
-			s = json.dumps(response).encode()
+			s = json.dumps(response)
 			#send status
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 
@@ -261,10 +261,11 @@ class BlackJackGameObject():
 					message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 					
 					response={"id" : 5, "message":message}
-					s = json.dumps(response).encode()
+					s = json.dumps(response)
 					#send status
 					try:
 						responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
+						print(responseJson)
 						choice = responseJson.get("id")
 					except socket.timeout:
 						print ("player timeout") 
@@ -295,7 +296,7 @@ class BlackJackGameObject():
 			message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
 			response={"id" : 6, "message" : message, "status" : "success", "state" : "endOfTurn"}
-			s = json.dumps(response).encode()
+			s = json.dumps(response)
 			#send status
 			sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 
@@ -309,7 +310,7 @@ class BlackJackGameObject():
 			#message = "The dealer is showing a " + str(self.dealer.getHand()[0]) + " \n\nYou have a " + str(player.getHand()) + " for a total of " + str(self.total(player.getHand()))
 				
 			response={"id" : 6, "message" : message, "status" : "success", "state" : "endOfGame"}
-			s = json.dumps(response).encode()
+			s = json.dumps(response)
 			#send status
 			responseJson = sendMessageAndReceiveResponse(self.sock, player.getIP(), player.getPort(), s)
 			player.setPlaying()

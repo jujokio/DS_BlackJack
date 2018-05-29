@@ -32,13 +32,11 @@ def cypher_aes(msg_text, encrypt=True, secret_key=MASTER_KEY):
     # in this case we make sure the key is 32 bytes long by adding padding and/or slicing if necessary
     remainder = len(secret_key) % 16
     modified_key = secret_key.ljust(len(secret_key) + (16 - remainder))[:32]
-    print(modified_key)
 
     # input strings must be a multiple of 16 in length
     # we achieve this by adding padding if necessary
     remainder = len(msg_text) % 16
     modified_text = msg_text.ljust(len(msg_text) + (16 - remainder))
-    print(modified_text)
 
     cipher = AES.new(modified_key, AES.MODE_ECB)  # use of ECB mode in enterprise environments is very much frowned upon
 
@@ -64,15 +62,16 @@ def server():
 	sock.settimeout(60)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-		response = json.loads(data.decode())
+		response = decrypt_val(data)
+		response = json.loads(response)
 		if (response.get("id")==0):
 			if (response.get("status")=="success"):
 				ingame=True
 				if (response.get("playerAmount")):
 					print(response.get("playerAmount"), "players ingame, starting game in 20sec...")
 				response={"id" : 0, "status" : "success"}
-				response = encrypt_val(response)
-				s = json.dumps(response).encode()
+				response = json.dumps(response)
+				s = encrypt_val(response)
 				sock.sendto(s, ( addr[0], addr[1] ))
 				print ("Liityit peliin")
 			else:
@@ -123,8 +122,8 @@ def server():
 				print("*"*10)
 				print("Waiting for new game...")
 			response={"id" : 6, "status" : "success"}
-			response = encrypt_val(response)
-			s = json.dumps(response).encode()
+			response = json.dumps(response)
+			s = encrypt_val(response)
 			sock.sendto(s, ( addr[0], addr[1] ))
 		response = None
 		
@@ -152,7 +151,8 @@ def sendHitRequest(server_ip):
 		try:
 			request={"id" : 1}
 			data=json.dumps(request)
-			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+			data = encrypt_val(data)
+			sock.sendto(data, (server_ip, UDP_PORT_SERVER))
 		except:
 			sendHitRequest(server_ip)
 		
@@ -164,7 +164,7 @@ def sendStandRequest(server_ip):
 			request={"id" : 2}
 			data=json.dumps(request)
 			data = encrypt_val(data)
-			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+			sock.sendto(data, (server_ip, UDP_PORT_SERVER))
 		except:
 			sendHitRequest(server_ip)
 		
@@ -175,7 +175,7 @@ def sendExitMessage(server_ip):
 			request={"id" : 3}
 			data=json.dumps(request)
 			data = encrypt_val(data)
-			sock.sendto(data.encode(), (server_ip, UDP_PORT_SERVER))
+			sock.sendto(data, (server_ip, UDP_PORT_SERVER))
 		except:
 			sendHitRequest(server_ip)
 
