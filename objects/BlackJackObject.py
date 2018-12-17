@@ -70,7 +70,7 @@ class BlackJackGameObject():
 			try:
 				client_ip, client_port = getPlayer(self.sock)
 			except socket.timeout:
-				print ("timeout")
+				print ("timeout") 
 				return
 			#self.player1 = Player(client_ip, client_port)
 			player = Player(client_ip, client_port)

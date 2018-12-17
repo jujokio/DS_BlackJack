@@ -10,7 +10,7 @@ class ClientObject:
 		
 	def SendJoinRequest(self):
 		print("Client Joining...")
-		requestCode = 0
+		requestCode = 0 
 		return None
 		
 		

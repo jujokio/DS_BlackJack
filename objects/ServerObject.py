@@ -15,7 +15,7 @@ class ServerObject():
 		requestCode = 0
 		return True
 		
-		
+		 
 	def ReceiveStandRequest(self):
 		print("server Standing...")
 		requestCode = 1

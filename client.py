@@ -17,7 +17,7 @@ UDP_PORT_SERVER = 10001
 UDP_PORT = 5006
 
 def flush_input():
-    try:
+    try: 
         import msvcrt
         while msvcrt.kbhit():
             msvcrt.getch()

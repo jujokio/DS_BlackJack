@@ -13,7 +13,7 @@ def server():
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 	sock.bind((UDP_IP, UDP_PORT))
 	print(sock)
-	players=0
+	players=0 
 	sock.settimeout(60)
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes

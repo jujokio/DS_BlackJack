@@ -16,4 +16,4 @@ if __name__ == "__main__":
 			game.waitForPlayers()
 			game.game()
 		except KeyboardInterrupt:
-			sys.exit(1)
+			sys.exit(1) 

@@ -16,7 +16,7 @@ timeOut =False
 def getPlayer(sock):
 	global gameTime
 	global timeOut
-
+ 
 	sock.settimeout(20)
 	data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 	request = json.loads(data.decode())
